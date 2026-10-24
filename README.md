@@ -29,11 +29,13 @@ Forma runs entirely on your computer:
 - No telemetry, no ads, no paywalls, no watermarks. Forma is non-profit.
 - Fonts you add and your own templates live in Forma's data folder
   (`~/.local/share/forma/fonts` and `.../templates`; in the Flatpak,
-  `~/.var/app/io.github.denkalli.Forma/data/forma/`). Any `.forma` file in the templates folder
-  shows up on the Templates page.
+  `~/.var/app/io.github.denkalli.Forma/data/forma/`; on Windows,
+  `%APPDATA%\forma\fonts` and `...\templates`). Any `.forma` file in the templates folder
+  shows up on the Templates page. Settings are in `settings.json` in the config folder
+  (`~/.config/forma/`, or `%APPDATA%\forma\` on Windows).
 
-> **Status:** early development. The first release (v0.1.0) will target Linux only;
-> Windows and macOS will follow.
+> **Status:** early development. The first release (v0.1.0) targets Linux only; Windows
+> builds are in progress, and macOS will follow.
 
 ## Building and running
 
@@ -75,6 +77,32 @@ flatpak run io.github.denkalli.Forma
 can read and write your home folder, where project folders usually live. Inside the
 sandbox, generic font families such as `sans-serif` resolve through the runtime's font
 configuration, so text set in them may use a different font than the native build.
+
+### Windows
+
+Building on Windows needs the MSVC toolchain (Visual Studio Build Tools with the "Desktop
+development with C++" workload) and a GPU with Direct3D 12 or Vulkan support.
+
+`packaging/windows/build.ps1` builds a release and writes to `target\windows\`:
+
+- `Forma-<version>-windows-x64.zip`, a portable folder: unzip it anywhere and run
+  `forma.exe`.
+- `Forma-<version>-windows-x64-setup.exe`, an installer made with
+  [Inno Setup 6](https://jrsoftware.org/isinfo.php) (`winget install JRSoftware.InnoSetup`),
+  when it is installed. The installer works without administrator rights, adds Forma to the
+  Start menu and opens `.forma` files with Forma. Pass `-ZipOnly` to skip it.
+
+```powershell
+powershell -ExecutionPolicy Bypass -File packaging\windows\build.ps1
+```
+
+Templates installed with Forma go in a `templates` folder next to `forma.exe`. The builds are
+not code-signed, so Windows SmartScreen may warn the first time: choose **More info → Run
+anyway**.
+
+`assets/icon-256.png` (the window icon) and `packaging/windows/forma.ico` (embedded in
+`forma.exe` by `build.rs`) are rendered from the SVG icon by `packaging/windows/make-icons.ps1`;
+run it again (it needs `cargo install resvg`) if the icon changes.
 
 ## Keyboard shortcuts
 
