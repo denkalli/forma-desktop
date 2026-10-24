@@ -1,0 +1,15 @@
+[Desktop Entry]
+Type=Application
+Name=Forma
+GenericName=Graphic Design
+GenericName[pt_BR]=Design gráfico
+Comment=Templates and vector design, free for everyone
+Comment[pt_BR]=Modelos prontos e design vetorial, livres para todos
+Exec=forma %f
+Icon=io.github.denkalli.Forma
+Terminal=false
+Categories=Graphics;2DGraphics;VectorGraphics;
+MimeType=application/vnd.forma+zip;
+Keywords=design;vector;template;poster;social media;svg;pdf;
+Keywords[pt_BR]=design;vetor;modelo;cartaz;redes sociais;svg;pdf;
+StartupWMClass=io.github.denkalli.Forma

@@ -1,0 +1,42 @@
+[package]
+name = "forma-desktop"
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.89"
+license = "GPL-3.0-or-later"
+description = "Forma: free graphic design with templates and vector editing"
+readme = "README.md"
+
+[[bin]]
+name = "forma"
+path = "src/main.rs"
+
+[dependencies]
+libforma = { path = "../libforma" }
+# Without `system_fonts`: Forma bundles its interface font, and that feature pulls an older
+# fontique whose fontconfig setup conflicts with the one Parley uses.
+eframe = { version = "0.37.0", default-features = false, features = [
+    "accesskit",
+    "clipboard",
+    "default_fonts",
+    "links",
+    "wayland",
+    "wgpu",
+    "x11",
+] }
+# Enables winit's default features (client-side decorations on Wayland), which eframe only
+# enables through its default feature set.
+winit = "0.30.13"
+# Must match the wgpu version used by eframe and by Vello (through libforma).
+wgpu = "30.0"
+lucide-icons = { version = "1.61", default-features = false }
+rfd = "0.17"
+dirs = "7.0"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+image = { version = "0.25", default-features = false, features = ["png", "jpeg"] }
+jiff = { version = "0.2.38", default-features = false, features = ["std"] }
+
+[profile.dev.package."*"]
+# Rendering and image decoding are slow without optimisations.
+opt-level = 2

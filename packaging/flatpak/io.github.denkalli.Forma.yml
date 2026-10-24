@@ -1,0 +1,55 @@
+# Flatpak manifest for Forma. Build and install it with ./build.sh, which vendors the Rust
+# dependencies first so the build runs without network access.
+id: io.github.denkalli.Forma
+runtime: org.freedesktop.Platform
+runtime-version: '26.08'
+sdk: org.freedesktop.Sdk
+sdk-extensions:
+  - org.freedesktop.Sdk.Extension.rust-stable
+command: forma
+finish-args:
+  - --socket=wayland
+  - --socket=fallback-x11
+  - --share=ipc
+  - --device=dri
+  # Project folders are remembered between sessions, so Forma reads and writes them directly.
+  - --filesystem=home
+modules:
+  - name: forma
+    buildsystem: simple
+    build-options:
+      append-path: /usr/lib/sdk/rust-stable/bin
+      env:
+        CARGO_HOME: /run/build/forma/cargo
+        CARGO_NET_OFFLINE: 'true'
+    build-commands:
+      - cargo --offline build --release --locked --manifest-path forma-desktop/Cargo.toml
+      - install -Dm755 forma-desktop/target/release/forma /app/bin/forma
+      - install -Dm644 forma-desktop/packaging/flatpak/io.github.denkalli.Forma.desktop -t /app/share/applications
+      - install -Dm644 forma-desktop/packaging/flatpak/io.github.denkalli.Forma.metainfo.xml -t /app/share/metainfo
+      - install -Dm644 forma-desktop/packaging/flatpak/io.github.denkalli.Forma.svg -t /app/share/icons/hicolor/scalable/apps
+      - install -Dm644 forma-desktop/packaging/flatpak/io.github.denkalli.Forma.mime.xml /app/share/mime/packages/io.github.denkalli.Forma.xml
+    sources:
+      - type: dir
+        path: ../../../libforma
+        dest: libforma
+        skip:
+          - target
+      - type: dir
+        path: ../..
+        dest: forma-desktop
+        skip:
+          - target
+      # Written by build.sh with `cargo vendor`.
+      - type: dir
+        path: ../../target/flatpak/vendor
+        dest: vendor
+      - type: inline
+        dest: .cargo
+        dest-filename: config.toml
+        contents: |
+          [source.crates-io]
+          replace-with = "vendored-sources"
+
+          [source.vendored-sources]
+          directory = "vendor"

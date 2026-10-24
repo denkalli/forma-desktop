@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mime-info xmlns="http://www.freedesktop.org/standards/shared-mime-info">
+  <mime-type type="application/vnd.forma+zip">
+    <comment>Forma design</comment>
+    <comment xml:lang="pt_BR">Design do Forma</comment>
+    <sub-class-of type="application/zip"/>
+    <glob pattern="*.forma"/>
+    <!-- The first ZIP entry is "mimetype", stored uncompressed, holding the type. -->
+    <magic priority="70">
+      <match type="string" value="PK\003\004" offset="0">
+        <match type="string" value="mimetypeapplication/vnd.forma+zip" offset="30"/>
+      </match>
+    </magic>
+    <icon name="io.github.denkalli.Forma"/>
+  </mime-type>
+</mime-info>

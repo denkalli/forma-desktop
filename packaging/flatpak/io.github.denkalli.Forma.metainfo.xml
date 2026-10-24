@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop-application">
+  <id>io.github.denkalli.Forma</id>
+  <name>Forma</name>
+  <summary>Templates and vector design, free for everyone</summary>
+  <summary xml:lang="pt-BR">Modelos prontos e design vetorial, livres para todos</summary>
+  <metadata_license>CC0-1.0</metadata_license>
+  <project_license>GPL-3.0-or-later</project_license>
+  <developer id="io.github.denkalli">
+    <name>Forma contributors</name>
+  </developer>
+  <description>
+    <p>
+      Forma is a free and open-source graphic design application. Start from a ready-made
+      size and have a post, poster or slide in minutes, or use the vector tools to design
+      every detail.
+    </p>
+    <ul>
+      <li>An infinite canvas with frames for each format</li>
+      <li>Shapes, pen tool with point editing, boolean operations and text</li>
+      <li>Layers, gradients, alignment, distribution, rulers and smart guides</li>
+      <li>Export frames to PNG, SVG and PDF</li>
+      <li>Your designs are plain .forma files in your own folders: no account, no internet</li>
+    </ul>
+    <p xml:lang="pt-BR">
+      O Forma é um aplicativo de design gráfico livre e de código aberto. Comece de um tamanho
+      pronto e tenha um post, cartaz ou slide em minutos, ou use as ferramentas vetoriais para
+      desenhar cada detalhe.
+    </p>
+  </description>
+  <url type="homepage">https://github.com/denkalli/forma-desktop</url>
+  <url type="bugtracker">https://github.com/denkalli/forma-desktop/issues</url>
+  <url type="vcs-browser">https://github.com/denkalli/forma-desktop</url>
+  <launchable type="desktop-id">io.github.denkalli.Forma.desktop</launchable>
+  <provides>
+    <binary>forma</binary>
+    <mediatype>application/vnd.forma+zip</mediatype>
+  </provides>
+  <categories>
+    <category>Graphics</category>
+    <category>2DGraphics</category>
+    <category>VectorGraphics</category>
+  </categories>
+  <content_rating type="oars-1.1"/>
+  <supports>
+    <control>pointing</control>
+    <control>keyboard</control>
+  </supports>
+  <requires>
+    <display_length compare="ge">960</display_length>
+  </requires>
+  <releases>
+    <release version="0.1.0" date="2026-10-24">
+      <description>
+        <p>First release, for Linux.</p>
+      </description>
+    </release>
+  </releases>
+</component>
