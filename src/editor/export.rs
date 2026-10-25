@@ -7,7 +7,7 @@ use libforma::render::OffscreenRenderer;
 use libforma::scene::DisplayList;
 use libforma::{NodeId, PageId};
 
-use super::Editor;
+use super::{Editor, THUMBNAIL_SIZE};
 use crate::i18n::tr;
 
 /// File formats for export.
@@ -117,6 +117,22 @@ impl Editor {
             }
         }
         Ok(doc)
+    }
+
+    /// Renders the first page of a standalone selection document as a compact PNG preview.
+    pub fn render_document_thumbnail(
+        &mut self,
+        document: &Document,
+        renderer: &mut OffscreenRenderer,
+    ) -> libforma::Result<Vec<u8>> {
+        let page = document.pages.first().ok_or_else(|| {
+            libforma::Error::Render(tr("A design needs at least one page.").into())
+        })?;
+        let list = self.scene.build_page(document, page);
+        let size = list.size();
+        let scale = (THUMBNAIL_SIZE / size.width.max(size.height).max(1.0)).min(1.0);
+        let image = renderer.render_image(&list, &document.assets, scale)?;
+        libforma::export::png::encode(&image)
     }
 
     /// The selected frames, back to front.

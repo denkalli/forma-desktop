@@ -1,6 +1,6 @@
 ; Inno Setup script for the Forma installer. Run through build.ps1, which passes the version
 ; and the folder holding forma.exe:
-;   ISCC.exe /DAppVersion=0.6.0 /DStageDir=...\Forma-0.6.0-windows-x64 /DOutputDir=... forma.iss
+;   ISCC.exe /DAppVersion=0.6.1 /DStageDir=...\Forma-0.6.1-windows-x64 /DOutputDir=... forma.iss
 
 #ifndef AppVersion
   #error Pass /DAppVersion=<version>

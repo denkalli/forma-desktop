@@ -655,9 +655,15 @@ impl FormaApp {
             return;
         };
         if format == ExportFormat::Forma {
+            let internal_name = options.forma_name.trim().to_owned();
+            let suggested_name = if internal_name.is_empty() {
+                format!("{name} - Selection")
+            } else {
+                internal_name.clone()
+            };
             let dialog = rfd::FileDialog::new()
                 .add_filter(tr("Forma design"), &[libforma::format::EXTENSION])
-                .set_file_name(format!("{name} - Selection.forma"));
+                .set_file_name(format!("{suggested_name}.forma"));
             let dialog = match self.default_dir() {
                 Some(dir) => dialog.set_directory(dir),
                 None => dialog,
@@ -668,11 +674,40 @@ impl FormaApp {
             else {
                 return;
             };
-            let Some(editor) = &mut self.editor else {
-                return;
+            if options.add_thumbnail {
+                self.offscreen();
+                if self.offscreen.is_none() {
+                    self.toast(tr("GPU unavailable"));
+                    return;
+                }
+            }
+            let content = {
+                let (editor, offscreen) = (&mut self.editor, &mut self.offscreen);
+                let Some(editor) = editor.as_mut() else {
+                    return;
+                };
+                (|| {
+                    let mut document = editor.selected_document()?;
+                    document.title = if internal_name.is_empty() {
+                        path.file_stem()
+                            .map(|stem| stem.to_string_lossy().into_owned())
+                            .unwrap_or_else(|| name.clone())
+                    } else {
+                        internal_name
+                    };
+                    let thumbnail = if options.add_thumbnail {
+                        Some(editor.render_document_thumbnail(
+                            &document,
+                            offscreen.as_mut().expect("renderer was initialized"),
+                        )?)
+                    } else {
+                        None
+                    };
+                    Ok::<_, libforma::Error>((document, thumbnail))
+                })()
             };
-            let document = match editor.selected_document() {
-                Ok(document) => document,
+            let (document, thumbnail) = match content {
+                Ok(content) => content,
                 Err(err) => {
                     self.toast(trf(
                         "Export failed: {error}",
@@ -684,7 +719,10 @@ impl FormaApp {
             match libforma::format::save(
                 &document,
                 &path,
-                &libforma::format::WriteOptions::default(),
+                &libforma::format::WriteOptions {
+                    thumbnail,
+                    ..Default::default()
+                },
             ) {
                 Ok(()) => {
                     self.rescan();
@@ -1201,7 +1239,11 @@ impl FormaApp {
         };
         let requests: Vec<_> = std::iter::from_fn(|| server.receiver.try_recv().ok()).collect();
         for request in requests {
-            let result = crate::mcp::execute(self.editor.as_mut(), request.operation);
+            let result = crate::mcp::execute_with_default_text_color(
+                self.editor.as_mut(),
+                request.operation,
+                self.theme.canvas_text,
+            );
             let _ = request.reply.send(result);
         }
     }

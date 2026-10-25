@@ -37,6 +37,8 @@ pub struct Theme {
     pub raised: Color,
     /// Background of the infinite canvas.
     pub canvas: Color,
+    /// Default color for new text nodes on the canvas.
+    pub canvas_text: Color,
     /// Dots of the canvas grid.
     pub canvas_grid: Color,
     /// Separators and outlines.
@@ -67,6 +69,7 @@ impl Theme {
                 panel: Color::rgb(0x2a, 0x2a, 0x2c),
                 raised: Color::rgb(0x38, 0x38, 0x3b),
                 canvas: Color::rgb(0x1b, 0x1b, 0x1d),
+                canvas_text: Color::WHITE,
                 canvas_grid: Color::rgb(0x4e, 0x4e, 0x55),
                 border: Color::rgb(0x3b, 0x3b, 0x3f),
                 text: Color::rgb(0xee, 0xee, 0xf0),
@@ -80,6 +83,7 @@ impl Theme {
                 panel: Color::rgb(0xff, 0xff, 0xff),
                 raised: Color::rgb(0xf1, 0xf1, 0xf4),
                 canvas: Color::rgb(0xe9, 0xe9, 0xed),
+                canvas_text: Color::BLACK,
                 canvas_grid: Color::rgb(0xb6, 0xb6, 0xc0),
                 border: Color::rgb(0xe1, 0xe1, 0xe6),
                 text: Color::rgb(0x1c, 0x1c, 0x20),
@@ -98,6 +102,7 @@ impl Theme {
             panel: Color::BLACK,
             raised: Color::BLACK,
             canvas: Color::BLACK,
+            canvas_text: Color::WHITE,
             canvas_grid: Color::BLACK,
             border: Color::BLACK,
             text: Color::WHITE,

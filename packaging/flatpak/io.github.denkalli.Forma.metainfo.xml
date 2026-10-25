@@ -50,6 +50,15 @@
     <display_length compare="ge">960</display_length>
   </requires>
   <releases>
+    <release version="0.6.1" date="2026-10-25">
+      <description>
+        <p>
+          Save selections as editable .forma designs with an internal name and an optional
+          thumbnail. Improve text editing and wrapping, and use theme-aware default text colors.
+          Includes Linux and Windows support.
+        </p>
+      </description>
+    </release>
     <release version="0.6.0" date="2026-10-25">
       <description>
         <p>Expanded the local MCP integration with tools to create and edit text, shapes, frames, fills and layer groups. Includes Linux and Windows support.</p>

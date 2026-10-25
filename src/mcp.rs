@@ -198,8 +198,8 @@ pub(crate) struct CreateTextArgs {
     font_size: f64,
     #[serde(default = "default_font_weight")]
     font_weight: u16,
-    #[serde(default = "default_text_color")]
-    color: String,
+    #[serde(default)]
+    color: Option<String>,
     #[serde(default)]
     align: String,
     width: Option<f64>,
@@ -212,9 +212,6 @@ fn default_font_size() -> f64 {
 }
 fn default_font_weight() -> u16 {
     400
-}
-fn default_text_color() -> String {
-    "#000000".into()
 }
 #[derive(Clone, Deserialize, JsonSchema)]
 pub(crate) struct CreateFrameArgs {
@@ -690,9 +687,18 @@ pub fn start(token: String, ui_context: eframe::egui::Context) -> Result<Running
     })
 }
 
+#[cfg(test)]
 pub fn execute(
     editor: Option<&mut crate::editor::Editor>,
     operation: Operation,
+) -> Result<Value, String> {
+    execute_with_default_text_color(editor, operation, Color::BLACK)
+}
+
+pub fn execute_with_default_text_color(
+    editor: Option<&mut crate::editor::Editor>,
+    operation: Operation,
+    default_text_color: Color,
 ) -> Result<Value, String> {
     let editor = editor.ok_or_else(|| "No design is open".to_owned())?;
     fn parsed_paint(args: PaintArgs) -> Result<Paint, String> {
@@ -896,8 +902,12 @@ pub fn execute(
             {
                 return Err("Text position, size, weight, or width is invalid".into());
             }
-            let color = Color::from_hex(&args.color)
-                .ok_or_else(|| format!("Invalid color: {}", args.color))?;
+            let color = match args.color.as_deref() {
+                Some(color) => {
+                    Color::from_hex(color).ok_or_else(|| format!("Invalid color: {color}"))?
+                }
+                None => default_text_color,
+            };
             let align = match args.align.as_str() {
                 "" | "start" => TextAlign::Start,
                 "center" => TextAlign::Center,
@@ -1370,7 +1380,7 @@ mod tests {
                 font_family: "Inter".into(),
                 font_size: 24.0,
                 font_weight: 700,
-                color: "#ffffff".into(),
+                color: Some("#ffffff".into()),
                 align: "center".into(),
                 width: Some(120.0),
             }),
@@ -1425,7 +1435,7 @@ mod tests {
                 font_family: "Inter".into(),
                 font_size: 16.0,
                 font_weight: 400,
-                color: "#000000".into(),
+                color: Some("#000000".into()),
                 align: "start".into(),
                 width: None,
             }),

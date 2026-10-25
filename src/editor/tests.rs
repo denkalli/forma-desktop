@@ -9,6 +9,7 @@ fn ctx() -> ToolContext {
     ToolContext {
         modifiers: Modifiers::default(),
         pixel: 1.0,
+        default_text_color: libforma::paint::Color::BLACK,
     }
 }
 
@@ -19,6 +20,7 @@ fn shift() -> ToolContext {
             ..Modifiers::default()
         },
         pixel: 1.0,
+        default_text_color: libforma::paint::Color::BLACK,
     }
 }
 
@@ -116,6 +118,7 @@ fn moving_a_shape_is_one_undo_step() {
             ..Modifiers::default()
         },
         pixel: 1.0,
+        default_text_color: libforma::paint::Color::BLACK,
     };
     drag(&mut editor, (120.0, 120.0), (157.0, 133.0), free);
     assert_eq!(

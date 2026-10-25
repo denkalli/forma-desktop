@@ -242,6 +242,8 @@ pub struct Export {
     pub format: ExportFormat,
     pub scale: f64,
     pub target: ExportTarget,
+    pub forma_name: String,
+    pub add_thumbnail: bool,
 }
 
 impl Export {
@@ -250,6 +252,8 @@ impl Export {
             format: ExportFormat::Png,
             scale: 1.0,
             target,
+            forma_name: String::new(),
+            add_thumbnail: true,
         }
     }
 }
@@ -330,6 +334,15 @@ pub fn export(
                     ui.selectable_value(&mut state.scale, scale, format!("{scale}×"));
                 }
             });
+        }
+        if state.format == ExportFormat::Forma {
+            ui.add_space(4.0);
+            ui.label(RichText::new(tr("Internal name")).color(c(theme.text_muted)));
+            ui.add(
+                egui::TextEdit::singleline(&mut state.forma_name)
+                    .hint_text(tr("Leave blank to use the file name")),
+            );
+            ui.checkbox(&mut state.add_thumbnail, tr("Add thumbnail"));
         }
         ui.add_space(6.0);
         let n = count(state.target);

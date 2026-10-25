@@ -50,6 +50,8 @@ pub struct ToolContext {
     pub modifiers: Modifiers,
     /// Size of one screen point in page units (1 / zoom).
     pub pixel: f64,
+    /// Theme-derived color used when creating a text node.
+    pub default_text_color: Color,
 }
 
 /// Cursor the canvas should show.
@@ -577,7 +579,7 @@ impl Editor {
         match self.tool {
             Tool::Select => self.press_select(pos, double, ctx),
             Tool::Pen => self.press_pen(pos, double, ctx),
-            Tool::Text => self.create_text(pos),
+            Tool::Text => self.create_text(pos, ctx.default_text_color),
             tool => {
                 let key = self.new_merge_key();
                 self.interaction.drag = Some(Drag::Create {
@@ -1316,9 +1318,10 @@ impl Editor {
 
     // ---- Text ---------------------------------------------------------------------------
 
-    fn create_text(&mut self, pos: Point) {
+    fn create_text(&mut self, pos: Point, color: Color) {
         let style = TextStyle {
             font_size: 32.0,
+            color,
             ..TextStyle::default()
         };
         let node = Node::text("", style);

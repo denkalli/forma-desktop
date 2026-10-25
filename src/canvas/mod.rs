@@ -5,8 +5,6 @@ mod gpu;
 mod overlay;
 mod rulers;
 
-use std::time::{Duration, Instant};
-
 use eframe::egui::{self, CursorIcon, Pos2, Rect, Sense, Vec2};
 use eframe::egui_wgpu::RenderState;
 use libforma::geom::{self, Affine, Point};
@@ -19,17 +17,12 @@ use crate::theme::egui::c;
 
 pub use gpu::{CanvasGpu, FrameKey};
 
-/// Two presses closer than this in time and space make a double click.
-const DOUBLE_CLICK_TIME: Duration = Duration::from_millis(400);
-const DOUBLE_CLICK_DISTANCE: f32 = 6.0;
-
 /// Canvas state that lives across frames.
 pub struct CanvasState {
     /// The current press started on the canvas.
     pressing: bool,
     /// Panning with the middle button or Space.
     panning: bool,
-    last_press: Option<(Instant, Pos2)>,
     /// The text field of in-place text editing should take focus.
     focus_text: bool,
     pub rect: Rect,
@@ -51,7 +44,6 @@ impl Default for CanvasState {
         Self {
             pressing: false,
             panning: false,
-            last_press: None,
             focus_text: false,
             rect: Rect::NOTHING,
             context: None,
@@ -124,7 +116,7 @@ pub fn show(
             (l.id, rect)
         })
         .collect();
-    handle_pointer(&ctx, &response, editor, state, mapping);
+    handle_pointer(&ctx, &response, editor, state, mapping, theme.canvas_text);
     context_menu(&response, editor, state, mapping, show_rulers, actions);
 
     // Render the page with Vello when anything changed.
@@ -353,6 +345,7 @@ fn handle_pointer(
     editor: &mut Editor,
     state: &mut CanvasState,
     mapping: Mapping,
+    default_text_color: libforma::paint::Color,
 ) {
     if state.panning
         || ctx.input(|i| i.key_down(egui::Key::Space)) && !ctx.egui_wants_keyboard_input()
@@ -376,33 +369,43 @@ fn handle_pointer(
             command: mods.command,
         },
         pixel: 1.0 / editor.view.zoom,
+        default_text_color,
     };
     let page_pos = mapping.to_page(pos);
 
     let mut cursor = CursorHint::Default;
-    if pressed && response.hovered() {
-        let now = Instant::now();
-        let double = state.last_press.is_some_and(|(t, p)| {
-            now - t < DOUBLE_CLICK_TIME && p.distance(pos) < DOUBLE_CLICK_DISTANCE
-        });
-        state.last_press = if double { None } else { Some((now, pos)) };
+    let started = pressed && response.hovered();
+    if started {
         state.pressing = true;
         editor.pointer(
             PointerEvent::Press {
                 pos: page_pos,
-                double,
+                double: false,
             },
             tool_ctx,
         );
         if editor.interaction.editing_text().is_some() {
             state.focus_text = true;
         }
-    } else if state.pressing && down {
-        cursor = editor.pointer(PointerEvent::Drag { pos: page_pos }, tool_ctx);
-    } else if state.pressing && released {
+    }
+    if state.pressing && released {
         state.pressing = false;
         editor.pointer(PointerEvent::Release { pos: page_pos }, tool_ctx);
-    } else if response.hovered() {
+        if response.double_clicked() {
+            editor.pointer(
+                PointerEvent::Press {
+                    pos: page_pos,
+                    double: true,
+                },
+                tool_ctx,
+            );
+            if editor.interaction.editing_text().is_some() {
+                state.focus_text = true;
+            }
+        }
+    } else if state.pressing && down && !started {
+        cursor = editor.pointer(PointerEvent::Drag { pos: page_pos }, tool_ctx);
+    } else if !started && response.hovered() {
         cursor = editor.pointer(PointerEvent::Hover { pos: page_pos }, tool_ctx);
     }
     if response.hovered() || state.pressing {
@@ -456,6 +459,7 @@ fn text_edit_overlay(
         .fixed_pos(origin)
         .order(egui::Order::Foreground);
     let response = area.show(ui.ctx(), |ui| {
+        ui.set_clip_rect(ui.clip_rect().intersect(mapping.rect));
         let mut edit = egui::TextEdit::multiline(&mut content)
             .font(egui::FontId::proportional(font_size))
             .text_color(color)

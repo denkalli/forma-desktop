@@ -1384,7 +1384,7 @@ dependencies = [
 
 [[package]]
 name = "forma-desktop"
-version = "0.6.0"
+version = "0.6.1"
 dependencies = [
  "axum",
  "dirs",
@@ -2256,7 +2256,7 @@ checksum = "65cd87c9a6d60536580b316ad985726104730a5151c99845f2490428ef91240a"
 
 [[package]]
 name = "libforma"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "blake3",
  "image",
