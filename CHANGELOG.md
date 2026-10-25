@@ -3,6 +3,13 @@
 This file records the published Forma Desktop releases. There are no published `v0.3.0`
 or `v0.4.0` tags.
 
+## 0.6.2 — 2026-10-25
+
+### Fixed
+
+- Create a text box on a completed canvas click so its editor does not compete with the
+  pointer-down event.
+
 ## 0.6.1 — 2026-10-25
 
 ### Added

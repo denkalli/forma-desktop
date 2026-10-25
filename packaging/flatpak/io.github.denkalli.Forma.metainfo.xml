@@ -50,6 +50,11 @@
     <display_length compare="ge">960</display_length>
   </requires>
   <releases>
+    <release version="0.6.2" date="2026-10-25">
+      <description>
+        <p>Fix text box creation so a normal click reliably starts text editing.</p>
+      </description>
+    </release>
     <release version="0.6.1" date="2026-10-25">
       <description>
         <p>

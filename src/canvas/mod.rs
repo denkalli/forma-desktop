@@ -21,6 +21,8 @@ pub use gpu::{CanvasGpu, FrameKey};
 pub struct CanvasState {
     /// The current press started on the canvas.
     pressing: bool,
+    /// A text-tool click is committed on release, after egui has completed the click.
+    pending_text_click: Option<Point>,
     /// Panning with the middle button or Space.
     panning: bool,
     /// The text field of in-place text editing should take focus.
@@ -43,6 +45,7 @@ impl Default for CanvasState {
     fn default() -> Self {
         Self {
             pressing: false,
+            pending_text_click: None,
             panning: false,
             focus_text: false,
             rect: Rect::NOTHING,
@@ -377,21 +380,42 @@ fn handle_pointer(
     let started = pressed && response.hovered();
     if started {
         state.pressing = true;
-        editor.pointer(
-            PointerEvent::Press {
-                pos: page_pos,
-                double: false,
-            },
-            tool_ctx,
-        );
-        if editor.interaction.editing_text().is_some() {
-            state.focus_text = true;
+        if editor.tool == crate::editor::Tool::Text {
+            state.pending_text_click = Some(page_pos);
+        } else {
+            editor.pointer(
+                PointerEvent::Press {
+                    pos: page_pos,
+                    double: false,
+                },
+                tool_ctx,
+            );
+            if editor.interaction.editing_text().is_some() {
+                state.focus_text = true;
+            }
         }
     }
     if state.pressing && released {
         state.pressing = false;
-        editor.pointer(PointerEvent::Release { pos: page_pos }, tool_ctx);
-        if response.double_clicked() {
+        let pending_text_click = state.pending_text_click.take();
+        if let Some(start_pos) = pending_text_click {
+            if response.clicked_by(egui::PointerButton::Primary) {
+                editor.pointer(
+                    PointerEvent::Press {
+                        pos: start_pos,
+                        double: false,
+                    },
+                    tool_ctx,
+                );
+                if editor.interaction.editing_text().is_some() {
+                    state.focus_text = true;
+                }
+                editor.pointer(PointerEvent::Release { pos: page_pos }, tool_ctx);
+            }
+        } else {
+            editor.pointer(PointerEvent::Release { pos: page_pos }, tool_ctx);
+        }
+        if pending_text_click.is_none() && response.double_clicked() {
             editor.pointer(
                 PointerEvent::Press {
                     pos: page_pos,
@@ -403,7 +427,7 @@ fn handle_pointer(
                 state.focus_text = true;
             }
         }
-    } else if state.pressing && down && !started {
+    } else if state.pressing && down && !started && state.pending_text_click.is_none() {
         cursor = editor.pointer(PointerEvent::Drag { pos: page_pos }, tool_ctx);
     } else if !started && response.hovered() {
         cursor = editor.pointer(PointerEvent::Hover { pos: page_pos }, tool_ctx);
