@@ -150,9 +150,11 @@ allow a compatible client to access the open design. The endpoint is
 HTTP host and origin, and stops when disabled or when Forma exits. Editing tools create
 ordinary undoable document changes. Keep the token private.
 
-The server provides `read_document`, `list_pages`, `list_layers`, `create_rectangle`,
-`rename_layer`, `transform_layer`, `move_layer` and `delete_layer` tools. Layer changes are
-applied to the design currently open in Forma.
+The server provides document and layer inspection, creation of text, shapes and frames,
+solid or gradient fills, strokes, text and appearance edits, grouping, duplication, moving,
+renaming, visibility, deletion, and undo/redo. Each tool returns its payload in the
+structured `data` field. Operations apply to the design currently open in Forma and enter
+its undo history.
 
 After enabling the server in Forma, copy its bearer token from **Settings → Project** and
 set it in the `FORMA_MCP_TOKEN` environment variable before launching the client.

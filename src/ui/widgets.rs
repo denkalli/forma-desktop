@@ -315,6 +315,7 @@ pub fn color_field(
                         let hex_response = ui.add(
                             egui::TextEdit::singleline(&mut hex)
                                 .desired_width(ui.available_width())
+                                .align(egui::Align2::LEFT_CENTER)
                                 .frame(egui::Frame::NONE)
                                 .char_limit(7),
                         );
