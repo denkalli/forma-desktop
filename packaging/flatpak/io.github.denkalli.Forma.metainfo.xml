@@ -50,6 +50,11 @@
     <display_length compare="ge">960</display_length>
   </requires>
   <releases>
+    <release version="0.2.0" date="2026-10-25">
+      <description>
+        <p>Windows support: a portable zip and an installer that opens .forma files.</p>
+      </description>
+    </release>
     <release version="0.1.0" date="2026-10-24">
       <description>
         <p>First release, for Linux.</p>
