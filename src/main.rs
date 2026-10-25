@@ -7,6 +7,7 @@ mod app;
 mod canvas;
 mod editor;
 mod i18n;
+mod mcp;
 mod settings;
 mod theme;
 mod ui;

@@ -22,6 +22,10 @@ pub struct Settings {
     /// the canvas turns them on. (Older settings stored `show_rulers`, which is ignored, so
     /// everyone starts with them off.)
     pub rulers: bool,
+    /// Enables the local MCP server. Disabled by default.
+    pub mcp_enabled: bool,
+    /// Secret bearer token used by local MCP clients.
+    pub mcp_token: String,
     /// Folders of designs shown on the start screen, in the order they were added.
     pub project_folders: Vec<PathBuf>,
     /// Older versions kept recent folders and the last one opened; they become project
@@ -40,6 +44,8 @@ impl Default for Settings {
             accent: DEFAULT_ACCENT,
             autosave: true,
             rulers: false,
+            mcp_enabled: false,
+            mcp_token: String::new(),
             project_folders: Vec::new(),
             recent_folders: Vec::new(),
             last_folder: None,
@@ -100,6 +106,13 @@ impl Settings {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn mcp_server_is_disabled_by_default() {
+        let settings = Settings::default();
+        assert!(!settings.mcp_enabled);
+        assert!(settings.mcp_token.is_empty());
+    }
 
     #[test]
     fn old_recent_folders_become_project_folders() {

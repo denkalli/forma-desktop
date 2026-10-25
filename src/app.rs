@@ -112,6 +112,7 @@ pub struct FormaApp {
     user_fonts: Vec<Vec<u8>>,
     /// `FORMA_SCREENSHOT` target and frame counter.
     screenshot: Option<(PathBuf, u32)>,
+    mcp: Option<crate::mcp::RunningServer>,
 }
 
 impl FormaApp {
@@ -162,6 +163,7 @@ impl FormaApp {
             title: String::new(),
             allow_close: false,
             screenshot: std::env::var_os("FORMA_SCREENSHOT").map(|p| (PathBuf::from(p), 0)),
+            mcp: None,
             user_fonts: read_user_fonts(),
         };
         // Development aid: `FORMA_THEME=light|dark` overrides the theme without saving it.
@@ -1122,10 +1124,50 @@ impl FormaApp {
             });
         ctx.request_repaint_after(Duration::from_millis(500));
     }
+    fn sync_mcp(&mut self, ctx: &egui::Context) {
+        if self.settings.mcp_enabled && self.mcp.is_none() {
+            if self.settings.mcp_token.is_empty() {
+                self.settings.mcp_token = uuid::Uuid::new_v4().simple().to_string();
+                self.save_settings();
+            }
+            match crate::mcp::start(self.settings.mcp_token.clone(), ctx.clone()) {
+                Ok(server) => {
+                    self.mcp = Some(server);
+                    self.toast(crate::i18n::tr(
+                        "MCP server listening at http://127.0.0.1:43121/mcp",
+                    ));
+                }
+                Err(error) => {
+                    self.settings.mcp_enabled = false;
+                    self.save_settings();
+                    self.toast(trf(
+                        "Could not start MCP server: {error}",
+                        &[("error", &error)],
+                    ));
+                }
+            }
+        } else if !self.settings.mcp_enabled && self.mcp.is_some() {
+            self.mcp = None;
+            self.toast(crate::i18n::tr("MCP server stopped"));
+        }
+    }
+
+    fn process_mcp_requests(&mut self) {
+        let Some(server) = &self.mcp else {
+            return;
+        };
+        let requests: Vec<_> = std::iter::from_fn(|| server.receiver.try_recv().ok()).collect();
+        for request in requests {
+            let result = crate::mcp::execute(self.editor.as_mut(), request.operation);
+            let _ = request.reply.send(result);
+        }
+    }
 }
 
 impl eframe::App for FormaApp {
     fn logic(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
+        self.sync_mcp(ctx);
+        self.process_mcp_requests();
         self.autosave();
         if self
             .editor

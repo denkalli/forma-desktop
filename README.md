@@ -16,6 +16,7 @@ scratch — in the same document.
   with search and preview. Add your own font files from the list.
 - **Export** frames, the selection or the whole page to PNG, SVG and PDF.
 - **English and Portuguese** interface (Settings → General → Language).
+- Optional local MCP server (Settings → Project) for clients to inspect and edit the open design.
 
 ## Local-first
 
@@ -139,6 +140,56 @@ drag a frame by its name.
   a dialog, a list or a page first.
 - `cargo test --release perf -- --ignored --nocapture` times editing a page with 5 500
   layers.
+
+## Model Context Protocol (MCP)
+
+The local MCP server is disabled by default. Enable **Settings → Project → MCP server** to
+allow a compatible client to access the open design. The endpoint is
+`http://127.0.0.1:43121/mcp`; send the displayed token in the
+`Authorization: Bearer <token>` header. The server binds only to loopback, validates the
+HTTP host and origin, and stops when disabled or when Forma exits. Editing tools create
+ordinary undoable document changes. Keep the token private.
+
+The server provides `read_document`, `list_pages`, `list_layers`, `create_rectangle`,
+`rename_layer`, `transform_layer`, `move_layer` and `delete_layer` tools. Layer changes are
+applied to the design currently open in Forma.
+
+After enabling the server in Forma, copy its bearer token from **Settings → Project** and
+set it in the `FORMA_MCP_TOKEN` environment variable before launching the client.
+
+### Claude Code
+
+Add this to `.mcp.json` in the project root. Claude Code expands the environment variable in
+HTTP headers, so the token does not need to be stored in the JSON file:
+
+```json
+{
+  "mcpServers": {
+    "forma": {
+      "type": "http",
+      "url": "http://127.0.0.1:43121/mcp",
+      "headers": {
+        "Authorization": "Bearer ${FORMA_MCP_TOKEN}"
+      }
+    }
+  }
+}
+```
+
+### Codex
+
+Add this to `~/.codex/config.toml`. Launch Codex from an environment where
+`FORMA_MCP_TOKEN` is set:
+
+```toml
+[mcp_servers.forma]
+url = "http://127.0.0.1:43121/mcp"
+bearer_token_env_var = "FORMA_MCP_TOKEN"
+```
+
+The JSON example is for Claude Code. Claude Desktop connects to remote MCP servers through
+**Settings → Connectors**; its `claude_desktop_config.json` is for local stdio servers and
+cannot configure Forma's HTTP endpoint.
 
 ## Translations
 

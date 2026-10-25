@@ -49,10 +49,15 @@ pub(super) static TABLE: &[(&str, &str)] = &[
     ("Alignment", "Alinhamento"),
     ("All fonts", "Todas as fontes"),
     ("All frames on the page", "Todos os quadros da página"),
+    (
+        "Allow local MCP clients to read and edit the open design",
+        "Permitir que clientes MCP locais leiam e editem o design aberto",
+    ),
     ("Auto height", "Altura automática"),
     ("Auto width", "Largura automática"),
     ("Autosave", "Salvamento automático"),
     ("Back to start", "Voltar ao início"),
+    ("Bearer token", "Token bearer"),
     ("Beveled", "Chanfrado"),
     ("Black", "Black"),
     ("Bold", "Negrito"),
@@ -110,6 +115,10 @@ pub(super) static TABLE: &[(&str, &str)] = &[
     (
         "Could not save: {error}",
         "Não foi possível salvar: {error}",
+    ),
+    (
+        "Could not start MCP server: {error}",
+        "Não foi possível iniciar o servidor MCP: {error}",
     ),
     (
         "Could not start rendering: {error}",
@@ -243,6 +252,10 @@ pub(super) static TABLE: &[(&str, &str)] = &[
     ("Intersect", "Interseção"),
     ("Italic", "Itálico"),
     ("Justify", "Justificar"),
+    (
+        "Keep this token private. Add it to the MCP client's Authorization header as Bearer <token>.",
+        "Mantenha este token privado. Adicione-o ao cabeçalho Authorization do cliente MCP como Bearer <token>.",
+    ),
     ("Language", "Idioma"),
     ("Layer", "Camada"),
     ("Layers", "Camadas"),
@@ -255,6 +268,12 @@ pub(super) static TABLE: &[(&str, &str)] = &[
     ("Linear gradient", "Gradiente linear"),
     ("Lines have no fill", "Linhas não têm preenchimento"),
     ("Luminosity", "Luminosidade"),
+    ("MCP server", "Servidor MCP"),
+    (
+        "MCP server listening at http://127.0.0.1:43121/mcp",
+        "Servidor MCP disponível em http://127.0.0.1:43121/mcp",
+    ),
+    ("MCP server stopped", "Servidor MCP parado"),
     (
         "Made by a newer version of Forma",
         "Criado por uma versão mais nova do Forma",
@@ -327,6 +346,10 @@ pub(super) static TABLE: &[(&str, &str)] = &[
     ("Round corners", "Canto redondo"),
     ("Round ends", "Ponta redonda"),
     ("Rulers", "Réguas"),
+    (
+        "Running at http://127.0.0.1:43121/mcp",
+        "Em execução em http://127.0.0.1:43121/mcp",
+    ),
     ("Saturation", "Saturação"),
     ("Save", "Salvar"),
     ("Save   Ctrl S", "Salvar   Ctrl S"),
@@ -365,6 +388,7 @@ pub(super) static TABLE: &[(&str, &str)] = &[
     ("Square post", "Post quadrado"),
     ("Star", "Estrela"),
     ("Start with", "Começar com"),
+    ("Stopped", "Parado"),
     ("Story", "Story"),
     ("Stroke", "Contorno"),
     ("Subtract", "Subtrair"),

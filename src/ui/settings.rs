@@ -237,6 +237,37 @@ fn general(ui: &mut Ui, theme: &Theme, settings: &mut Settings) {
 }
 
 fn project(ui: &mut Ui, theme: &Theme, settings: &mut Settings, actions: &mut Vec<Action>) {
+    ui.label(strong(tr("MCP server")).size(15.0));
+    ui.add_space(6.0);
+    ui.checkbox(
+        &mut settings.mcp_enabled,
+        tr("Allow local MCP clients to read and edit the open design"),
+    );
+    ui.add_space(4.0);
+    ui.label(
+        RichText::new(if settings.mcp_enabled {
+            tr("Running at http://127.0.0.1:43121/mcp")
+        } else {
+            tr("Stopped")
+        })
+        .color(c(theme.text_muted)),
+    );
+    if settings.mcp_enabled {
+        ui.add_space(4.0);
+        ui.label(tr("Bearer token"));
+        let mut token = settings.mcp_token.clone();
+        ui.add(
+            egui::TextEdit::singleline(&mut token)
+                .desired_width(430.0)
+                .interactive(true),
+        );
+        ui.label(
+            RichText::new(tr("Keep this token private. Add it to the MCP client's Authorization header as Bearer <token>."))
+                .color(c(theme.text_muted)),
+        );
+    }
+    end_item(ui, theme);
+
     let (value, action) = if settings.rulers {
         (tr("Shown on the canvas"), tr("Hide rulers"))
     } else {
