@@ -1,9 +1,9 @@
-name: Release v0.5.0
+name: Release v0.6.0
 
 on:
   push:
     tags:
-      - v0.5.0
+      - v0.6.0
 
 permissions:
   contents: read
@@ -48,10 +48,10 @@ jobs:
           flatpak build-bundle \
             --runtime-repo=https://dl.flathub.org/repo/flathub.flatpakrepo \
             forma-desktop/target/flatpak/repo \
-            forma-desktop/target/flatpak/release/Forma-0.5.0-x86_64.flatpak \
+            forma-desktop/target/flatpak/release/Forma-0.6.0-x86_64.flatpak \
             io.github.denkalli.Forma master
           cd forma-desktop/target/flatpak/release
-          sha256sum Forma-0.5.0-x86_64.flatpak > Forma-0.5.0-x86_64.flatpak.sha256
+          sha256sum Forma-0.6.0-x86_64.flatpak > Forma-0.6.0-x86_64.flatpak.sha256
 
       - name: Upload Linux release assets
         uses: actions/upload-artifact@v6
