@@ -1280,7 +1280,13 @@ fn read_templates() -> Vec<Workspace> {
         .collect()
 }
 
-/// Opens a folder in the desktop's file manager (through the portal in the Flatpak).
+/// Opens a folder in the system's file manager (through the portal in the Flatpak).
 pub fn open_in_file_manager(dir: &Path) {
-    let _ = std::process::Command::new("xdg-open").arg(dir).spawn();
+    #[cfg(windows)]
+    let program = "explorer";
+    #[cfg(target_os = "macos")]
+    let program = "open";
+    #[cfg(not(any(windows, target_os = "macos")))]
+    let program = "xdg-open";
+    let _ = std::process::Command::new(program).arg(dir).spawn();
 }

@@ -1,5 +1,5 @@
 //! User preferences, stored as JSON in the XDG config directory
-//! (`~/.config/forma/settings.json` on Linux).
+//! (`~/.config/forma/settings.json` on Linux, `%APPDATA%\forma\settings.json` on Windows).
 
 use std::path::{Path, PathBuf};
 

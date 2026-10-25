@@ -1064,7 +1064,8 @@ fn text_boxes_resize_from_their_handles() {
     );
     let text = text_of(&editor, id);
     assert_eq!(text.sizing(), TextSizing::AutoHeight);
-    assert_eq!(text.width, Some(b.width() + 100.0));
+    // Not exact: text widths measured by the system's fonts need not be exact in binary.
+    assert!((text.width.unwrap() - (b.width() + 100.0)).abs() < 1e-9);
 
     // The bottom handle fixes the height.
     let b = bounds(&mut editor, id);

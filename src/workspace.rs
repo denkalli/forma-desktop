@@ -4,18 +4,29 @@ use crate::i18n::tr;
 use std::path::{Path, PathBuf};
 use std::time::SystemTime;
 
-/// Folders where templates are looked up: the one installed with Forma (`share/forma/templates`
-/// next to the program, `/app/share/...` in the Flatpak), then the user's own.
+/// Folders where templates are looked up: the one installed with Forma, then the user's own.
 pub fn template_dirs() -> Vec<PathBuf> {
     let mut dirs = Vec::new();
-    if let Some(prefix) = std::env::current_exe()
-        .ok()
-        .and_then(|exe| exe.parent()?.parent().map(Path::to_path_buf))
-    {
-        dirs.push(prefix.join("share").join("forma").join("templates"));
-    }
+    dirs.extend(installed_templates_dir());
     dirs.extend(user_templates_dir());
     dirs
+}
+
+/// On Windows, a `templates` folder next to `forma.exe` (in the portable zip and in the
+/// installation folder).
+#[cfg(windows)]
+fn installed_templates_dir() -> Option<PathBuf> {
+    let exe = std::env::current_exe().ok()?;
+    Some(exe.parent()?.join("templates"))
+}
+
+/// Elsewhere, `share/forma/templates` next to the program's `bin` folder (`/app/share/...` in
+/// the Flatpak).
+#[cfg(not(windows))]
+fn installed_templates_dir() -> Option<PathBuf> {
+    let exe = std::env::current_exe().ok()?;
+    let prefix = exe.parent()?.parent()?;
+    Some(prefix.join("share").join("forma").join("templates"))
 }
 
 /// The user's template folder, where any `.forma` file becomes a template.
@@ -78,21 +89,34 @@ impl Workspace {
 
     /// A file name in the workspace that does not exist yet, based on `title`.
     pub fn unique_path(&self, title: &str) -> PathBuf {
+        // Characters that are not allowed in file names on any of the systems Forma runs on,
+        // so the same title gives the same file name everywhere.
         let base: String = title
             .chars()
             .map(|c| {
-                if matches!(c, '/' | '\\' | '\0') {
+                if matches!(c, '/' | '\\' | ':' | '*' | '?' | '"' | '<' | '>' | '|')
+                    || c.is_control()
+                {
                     '-'
                 } else {
                     c
                 }
             })
             .collect();
-        let base = if base.trim().is_empty() {
-            tr("Untitled").to_owned()
-        } else {
-            base.trim().to_owned()
-        };
+        // Windows drops trailing dots and spaces from file names.
+        let mut base = base.trim().trim_end_matches('.').trim_end().to_owned();
+        if base.is_empty() {
+            base = tr("Untitled").to_owned();
+        }
+        // Windows reserves these device names, with any extension.
+        let upper = base.to_ascii_uppercase();
+        if matches!(upper.as_str(), "CON" | "PRN" | "AUX" | "NUL")
+            || ((upper.starts_with("COM") || upper.starts_with("LPT"))
+                && upper.len() == 4
+                && upper.as_bytes()[3].is_ascii_digit())
+        {
+            base.push('-');
+        }
         let mut path = self.root.join(format!("{base}.forma"));
         let mut n = 2;
         while path.exists() {
@@ -190,5 +214,26 @@ mod tests {
             dir.join("Post - Junho 2.forma")
         );
         std::fs::remove_dir_all(&dir).unwrap();
+    }
+
+    #[test]
+    fn file_names_are_valid_on_windows() {
+        let ws = Workspace::new(Path::new("/não/existe/forma-teste"));
+        let name = |title: &str| {
+            ws.unique_path(title)
+                .file_name()
+                .unwrap()
+                .to_string_lossy()
+                .into_owned()
+        };
+        assert_eq!(
+            name("Post: Junho? <\"A|B\">*"),
+            "Post- Junho- --A-B---.forma"
+        );
+        assert_eq!(name("Cartaz..."), "Cartaz.forma");
+        assert_eq!(name("con"), "con-.forma");
+        assert_eq!(name("LPT1"), "LPT1-.forma");
+        assert_eq!(name("Console"), "Console.forma");
+        assert_eq!(name(" . "), format!("{}.forma", tr("Untitled")));
     }
 }

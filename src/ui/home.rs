@@ -543,7 +543,7 @@ pub fn templates_tab(
 /// A path for display, with the home folder shortened to `~`.
 pub fn display_path(path: &Path) -> String {
     match dirs::home_dir().and_then(|home| path.strip_prefix(home).ok().map(Path::to_path_buf)) {
-        Some(rest) => format!("~/{}", rest.display()),
+        Some(rest) => format!("~{}{}", std::path::MAIN_SEPARATOR, rest.display()),
         None => path.display().to_string(),
     }
 }
