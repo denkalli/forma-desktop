@@ -157,8 +157,8 @@ renaming, visibility, deletion, and undo/redo. Each tool returns its payload in 
 structured `data` field. Operations apply to the design currently open in Forma and enter
 its undo history.
 
-After enabling the server in Forma, copy its bearer token from **Settings → Project** and
-set it in the `FORMA_MCP_TOKEN` environment variable before launching the client.
+After enabling the server in Forma, copy its bearer token from **Settings → Project**. Keep the
+token private and do not commit it to a project repository.
 
 ### Claude Code
 
@@ -181,13 +181,15 @@ HTTP headers, so the token does not need to be stored in the JSON file:
 
 ### Codex
 
-Add this to `~/.codex/config.toml`. Launch Codex from an environment where
-`FORMA_MCP_TOKEN` is set:
+Add this to `~/.codex/config.toml`, replacing the placeholder with the token shown in Forma's
+**Settings → Project**. Codex's `http_headers` values are sent literally, so the token belongs
+after `Bearer` here; `bearer_token_env_var` instead expects the name of an environment variable
+available to the Codex process.
 
 ```toml
 [mcp_servers.forma]
 url = "http://127.0.0.1:43121/mcp"
-bearer_token_env_var = "FORMA_MCP_TOKEN"
+http_headers = { "Authorization" = "Bearer <FORMA_MCP_TOKEN>" }
 ```
 
 The JSON example is for Claude Code. Claude Desktop connects to remote MCP servers through
