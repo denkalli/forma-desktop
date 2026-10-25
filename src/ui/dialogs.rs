@@ -292,9 +292,14 @@ pub fn export(
                 }
                 _ => label.to_owned(),
             };
-            ui.add_enabled_ui(n > 0, |ui| {
-                ui.radio_value(&mut state.target, target, label);
-            });
+            let response =
+                ui.add_enabled(n > 0, egui::RadioButton::new(state.target == target, label));
+            if response.clicked() {
+                state.target = target;
+                if target != ExportTarget::Selection && state.format == ExportFormat::Forma {
+                    state.format = ExportFormat::Png;
+                }
+            }
         }
         ui.add_space(10.0);
         ui.label(RichText::new(tr("Format")).color(c(theme.text_muted)));
@@ -303,8 +308,18 @@ pub fn export(
                 (ExportFormat::Png, "PNG"),
                 (ExportFormat::Svg, "SVG"),
                 (ExportFormat::Pdf, "PDF"),
+                (ExportFormat::Forma, ".forma"),
             ] {
-                ui.selectable_value(&mut state.format, format, label);
+                let enabled = format != ExportFormat::Forma || count(ExportTarget::Selection) > 0;
+                let previous = state.format;
+                ui.add_enabled_ui(enabled, |ui| {
+                    ui.selectable_value(&mut state.format, format, label);
+                });
+                if state.format != previous {
+                    if format == ExportFormat::Forma {
+                        state.target = ExportTarget::Selection;
+                    }
+                }
             }
         });
         ui.add_space(8.0);
@@ -321,6 +336,9 @@ pub fn export(
         let count = n.to_string();
         let values = [("n", count.as_str())];
         let hint = match (state.format, n == 1) {
+            (ExportFormat::Forma, _) => {
+                tr("Save the selected layers as an editable Forma design.").to_owned()
+            }
             (ExportFormat::Png, true) => trf("1 image, for social media and the web.", &values),
             (ExportFormat::Png, false) => trf("{n} images, for social media and the web.", &values),
             (ExportFormat::Svg, true) => trf(
@@ -341,7 +359,17 @@ pub fn export(
         ui.label(RichText::new(hint).color(c(theme.text_muted)).size(11.5));
         ui.add_space(14.0);
         ui.horizontal(|ui| {
-            let button = ui.add_enabled_ui(n > 0, |ui| accent_button(ui, theme, tr("Export…")));
+            let button = ui.add_enabled_ui(n > 0, |ui| {
+                accent_button(
+                    ui,
+                    theme,
+                    if state.format == ExportFormat::Forma {
+                        tr("Save as…")
+                    } else {
+                        tr("Export…")
+                    },
+                )
+            });
             if button.inner.clicked() {
                 actions.push(Action::Export);
                 open = false;

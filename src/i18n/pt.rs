@@ -353,11 +353,20 @@ pub(super) static TABLE: &[(&str, &str)] = &[
     ("Saturation", "Saturação"),
     ("Save", "Salvar"),
     ("Save   Ctrl S", "Salvar   Ctrl S"),
+    ("Save as…", "Salvar como…"),
     ("Save as…   Ctrl Shift S", "Salvar como…   Ctrl Shift S"),
     ("Save in", "Salvar em"),
     (
         "Save the changes to “{name}”?",
         "Salvar as alterações em “{name}”?",
+    ),
+    (
+        "Save the selected layers as an editable Forma design.",
+        "Salvar as camadas selecionadas como um design editável do Forma.",
+    ),
+    (
+        "Save the selection as a Forma design instead of exporting it",
+        "Salve a seleção como um design do Forma em vez de exportá-la",
     ),
     ("Scale", "Escala"),
     ("Screen", "Tela"),
@@ -366,6 +375,10 @@ pub(super) static TABLE: &[(&str, &str)] = &[
     ("Select all   Ctrl A", "Selecionar tudo   Ctrl A"),
     ("Selected frames", "Quadros selecionados"),
     ("Selection", "Seleção"),
+    (
+        "Selection saved as a Forma design",
+        "Seleção salva como design do Forma",
+    ),
     ("Semibold", "Seminegrito"),
     ("Send backward   Ctrl [", "Enviar para trás   Ctrl ["),
     ("Settings", "Ajustes"),

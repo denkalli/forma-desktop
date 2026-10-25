@@ -654,6 +654,49 @@ impl FormaApp {
         let Some(name) = self.editor.as_ref().map(Editor::display_name) else {
             return;
         };
+        if format == ExportFormat::Forma {
+            let dialog = rfd::FileDialog::new()
+                .add_filter(tr("Forma design"), &[libforma::format::EXTENSION])
+                .set_file_name(format!("{name} - Selection.forma"));
+            let dialog = match self.default_dir() {
+                Some(dir) => dialog.set_directory(dir),
+                None => dialog,
+            };
+            let Some(path) = dialog
+                .save_file()
+                .map(|p| p.with_extension(libforma::format::EXTENSION))
+            else {
+                return;
+            };
+            let Some(editor) = &mut self.editor else {
+                return;
+            };
+            let document = match editor.selected_document() {
+                Ok(document) => document,
+                Err(err) => {
+                    self.toast(trf(
+                        "Export failed: {error}",
+                        &[("error", &err.to_string())],
+                    ));
+                    return;
+                }
+            };
+            match libforma::format::save(
+                &document,
+                &path,
+                &libforma::format::WriteOptions::default(),
+            ) {
+                Ok(()) => {
+                    self.rescan();
+                    self.toast(tr("Selection saved as a Forma design"));
+                }
+                Err(err) => self.toast(trf(
+                    "Could not save: {error}",
+                    &[("error", &err.to_string())],
+                )),
+            }
+            return;
+        }
         let multiple = format != ExportFormat::Pdf
             && self
                 .editor

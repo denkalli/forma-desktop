@@ -1,5 +1,7 @@
 //! Exporting frames, the selection or a whole page as PNG, SVG or PDF.
 
+use libforma::geom::{Affine, Rect};
+use libforma::model::{Document, Node, NodeKind, Page};
 use libforma::query;
 use libforma::render::OffscreenRenderer;
 use libforma::scene::DisplayList;
@@ -15,6 +17,8 @@ pub enum ExportFormat {
     Png,
     Svg,
     Pdf,
+    /// An editable document containing the selected nodes.
+    Forma,
 }
 
 impl ExportFormat {
@@ -23,6 +27,7 @@ impl ExportFormat {
             ExportFormat::Png => "png",
             ExportFormat::Svg => "svg",
             ExportFormat::Pdf => "pdf",
+            ExportFormat::Forma => "forma",
         }
     }
 }
@@ -42,6 +47,78 @@ pub enum ExportTarget {
 }
 
 impl Editor {
+    /// Copies the selected nodes into a standalone document, preserving their editable
+    /// structure and the image assets they reference.
+    pub fn selected_document(&mut self) -> libforma::Result<Document> {
+        let page = self.current_page();
+        let page_id = page.id;
+        let page_name = page.name.clone();
+        let selected: std::collections::HashSet<_> = self.selection.iter().copied().collect();
+        fn roots(
+            nodes: &[Node],
+            parent: Affine,
+            has_selected_parent: bool,
+            selected: &std::collections::HashSet<NodeId>,
+            out: &mut Vec<Node>,
+        ) {
+            for node in nodes {
+                let is_selected = selected.contains(&node.id);
+                if is_selected && !has_selected_parent {
+                    let mut copy = node.clone();
+                    copy.transform = parent * node.transform;
+                    out.push(copy);
+                } else if !is_selected {
+                    roots(
+                        node.children(),
+                        parent * node.transform,
+                        false,
+                        selected,
+                        out,
+                    );
+                }
+            }
+        }
+        let mut nodes = Vec::new();
+        roots(
+            &page.children,
+            Affine::IDENTITY,
+            false,
+            &selected,
+            &mut nodes,
+        );
+        if nodes.is_empty() {
+            return Err(libforma::Error::Render(tr("Nothing to export").into()));
+        }
+        let ids: Vec<_> = nodes.iter().map(|node| node.id).collect();
+        let area = self
+            .scene
+            .build_nodes(&self.doc, page_id, &ids)?
+            .into_iter()
+            .map(|list| list.area)
+            .reduce(|a, b| a.union(b))
+            .unwrap_or(Rect::ZERO);
+        let normalize = Affine::translate((-area.x0, -area.y0));
+        for node in &mut nodes {
+            node.transform = normalize * node.transform;
+        }
+        let mut doc = Document::new(format!("{} - Selection", self.display_name()))
+            .with_page(Page::new(page_name));
+        doc.pages[0].children = nodes;
+        let mut used = std::collections::BTreeSet::new();
+        doc.walk(&mut |node| {
+            if let NodeKind::Image(image) = &node.kind {
+                used.insert(image.asset);
+            }
+        });
+        for id in used {
+            if let Some(asset) = self.doc.assets.get(id) {
+                doc.assets
+                    .insert(asset.media_type.clone(), asset.data.clone());
+            }
+        }
+        Ok(doc)
+    }
+
     /// The selected frames, back to front.
     fn selected_frames(&self) -> Vec<NodeId> {
         self.selection_in_order()
@@ -172,6 +249,9 @@ impl Editor {
             return Err(libforma::Error::Render(tr("Nothing to export").into()));
         }
         match format {
+            ExportFormat::Forma => Err(libforma::Error::Render(
+                tr("Save the selection as a Forma design instead of exporting it").into(),
+            )),
             ExportFormat::Pdf => {
                 let lists: Vec<DisplayList> = lists.into_iter().map(|(_, l)| l).collect();
                 Ok(vec![(
