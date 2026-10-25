@@ -35,8 +35,8 @@ Forma runs entirely on your computer:
   shows up on the Templates page. Settings are in `settings.json` in the config folder
   (`~/.config/forma/`, or `%APPDATA%\forma\` on Windows).
 
-> **Status:** early development. The first release (v0.1.0) targets Linux only; Windows
-> builds are in progress, and macOS will follow.
+> **Status:** v0.5.0 supports Linux and Windows. macOS support is planned for the first
+> major release.
 
 ## Building and running
 

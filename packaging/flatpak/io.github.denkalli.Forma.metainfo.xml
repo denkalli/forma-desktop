@@ -50,6 +50,11 @@
     <display_length compare="ge">960</display_length>
   </requires>
   <releases>
+    <release version="0.5.0" date="2026-10-24">
+      <description>
+        <p>Connect MCP clients to inspect and edit the open design. Includes Linux and Windows support.</p>
+      </description>
+    </release>
     <release version="0.2.0" date="2026-10-25">
       <description>
         <p>Windows support: a portable zip and an installer that opens .forma files.</p>

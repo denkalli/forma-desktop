@@ -1,0 +1,114 @@
+name: Release v0.5.0
+
+on:
+  push:
+    tags:
+      - v0.5.0
+
+permissions:
+  contents: read
+
+jobs:
+  linux:
+    name: Build Linux Flatpak
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Check out forma-desktop
+        uses: actions/checkout@v7
+        with:
+          path: forma-desktop
+
+      - name: Check out the libforma release source
+        uses: actions/checkout@v7
+        with:
+          repository: denkalli/libforma
+          ref: 7b5c5b564e21b3476fa0b1f79f5d950c2040db47
+          path: libforma
+
+      - name: Install Flatpak build tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes flatpak flatpak-builder
+          sudo flatpak remote-add --if-not-exists flathub https://dl.flathub.org/repo/flathub.flatpakrepo
+          sudo flatpak install --system --assumeyes flathub \
+            org.freedesktop.Sdk//26.08 \
+            org.freedesktop.Sdk.Extension.rust-stable//26.08 \
+            org.freedesktop.Platform//26.08
+
+      - name: Vendor Rust dependencies
+        run: cargo vendor --locked --manifest-path forma-desktop/Cargo.toml forma-desktop/target/flatpak/vendor > /dev/null
+
+      - name: Build Flatpak
+        run: |
+          mkdir -p forma-desktop/target/flatpak/release
+          flatpak-builder --force-clean \
+            --repo=forma-desktop/target/flatpak/repo \
+            forma-desktop/target/flatpak/build \
+            forma-desktop/packaging/flatpak/io.github.denkalli.Forma.yml
+          flatpak build-bundle \
+            --runtime-repo=https://dl.flathub.org/repo/flathub.flatpakrepo \
+            forma-desktop/target/flatpak/repo \
+            forma-desktop/target/flatpak/release/Forma-0.5.0-x86_64.flatpak \
+            io.github.denkalli.Forma master
+          cd forma-desktop/target/flatpak/release
+          sha256sum Forma-0.5.0-x86_64.flatpak > Forma-0.5.0-x86_64.flatpak.sha256
+
+      - name: Upload Linux release assets
+        uses: actions/upload-artifact@v6
+        with:
+          name: linux-release-assets
+          path: forma-desktop/target/flatpak/release/*
+          if-no-files-found: error
+
+  windows:
+    name: Build Windows x64 packages
+    runs-on: windows-latest
+    steps:
+      - name: Check out forma-desktop
+        uses: actions/checkout@v7
+        with:
+          path: forma-desktop
+
+      - name: Check out the libforma release source
+        uses: actions/checkout@v7
+        with:
+          repository: denkalli/libforma
+          ref: 7b5c5b564e21b3476fa0b1f79f5d950c2040db47
+          path: libforma
+
+      - name: Install Rust stable and Inno Setup
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Install Inno Setup
+        run: choco install innosetup --yes --no-progress
+
+      - name: Build Windows packages
+        shell: pwsh
+        run: ./forma-desktop/packaging/windows/build.ps1
+
+      - name: Upload Windows release assets
+        uses: actions/upload-artifact@v6
+        with:
+          name: windows-release-assets
+          path: forma-desktop/target/windows/*
+          if-no-files-found: error
+
+  publish:
+    name: Publish GitHub release
+    needs: [linux, windows]
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    steps:
+      - name: Download release assets
+        uses: actions/download-artifact@v6
+        with:
+          pattern: '*-release-assets'
+          path: release-assets
+          merge-multiple: true
+
+      - name: Create GitHub release
+        uses: softprops/action-gh-release@v3
+        with:
+          generate_release_notes: true
+          files: release-assets/*
